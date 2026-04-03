@@ -7,16 +7,32 @@ _default:
 setup:
     rustup show
 
+# 🏗️ Build WASM plugins
+build-plugins:
+    cargo build --target wasm32-wasip1 \
+        --package compact-bar \
+        --package status-bar \
+        --package tab-bar \
+        --package strider \
+        --package session-manager \
+        --package configuration \
+        --package plugin-manager \
+        --package about \
+        --package share \
+        --package multiple-select \
+        --package layout-manager \
+        --package link
+
 # 🏗️ Build (debug)
-build:
+build: build-plugins
     cargo build
 
 # 🚀 Build and run (release)
-run:
+run: build-plugins
     cargo run --release
 
 # 🐛 Run in debug mode
-dev:
+dev: build-plugins
     cargo run
 
 # 🎨 Format code
