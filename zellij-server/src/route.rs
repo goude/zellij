@@ -2253,6 +2253,7 @@ pub(crate) fn route_thread_main(
                                     client_input_mode,
                                 )) = session_data_assets
                                 {
+                                    let mut effective_mode_switch: Option<InputMode> = None;
                                     for action in keybinds
                                         .get_actions_for_key_in_mode_or_default_action(
                                             &input_mode,
@@ -2262,6 +2263,30 @@ pub(crate) fn route_thread_main(
                                             is_kitty_keyboard_protocol,
                                         )
                                     {
+                                        // When a keybinding combines SwitchToMode with a
+                                        // name-input action (e.g. SwitchToMode "renametab";
+                                        // PaneNameInput 0), the mode change is async and
+                                        // hasn't taken effect yet. Redirect the name-input
+                                        // action to match the target mode.
+                                        let action = match (&action, effective_mode_switch) {
+                                            (Action::PaneNameInput { .. }, Some(InputMode::RenameTab)) => {
+                                                match action {
+                                                    Action::PaneNameInput { input } => Action::TabNameInput { input },
+                                                    _ => action,
+                                                }
+                                            },
+                                            (Action::TabNameInput { .. }, Some(InputMode::RenamePane)) => {
+                                                match action {
+                                                    Action::TabNameInput { input } => Action::PaneNameInput { input },
+                                                    _ => action,
+                                                }
+                                            },
+                                            _ => action,
+                                        };
+                                        if let Action::SwitchToMode { input_mode } = &action {
+                                            effective_mode_switch = Some(*input_mode);
+                                        }
+
                                         // Send user input to plugin thread for logging
                                         let _ =
                                             senders.send_to_plugin(PluginInstruction::UserInput {
