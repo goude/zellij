@@ -6,6 +6,7 @@ _default:
 # 🔧 Install/update toolchain and build dependencies
 setup:
     rustup show
+    rustup target add wasm32-wasip1
 
 # 🏗️ Build WASM plugins
 build-plugins:
