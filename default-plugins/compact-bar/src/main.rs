@@ -538,7 +538,7 @@ impl State {
         let mut is_alternate_tab = false;
 
         for tab in &self.tabs {
-            let tab_name = self.get_tab_display_name(tab);
+            let tab_name = format!("{} {}", tab.position + 1, self.get_tab_display_name(tab));
 
             if tab.active {
                 active_tab_index = tab.position;
