@@ -28,8 +28,32 @@ build-plugins:
 build: build-plugins
     cargo build
 
+# 🏗️ Build WASM plugins in release mode and refresh zellij-utils/assets/plugins/
+#
+# Release builds of the main binary embed plugins from zellij-utils/assets/plugins
+# via include_bytes! (see zellij-utils/src/consts.rs). The plugins_from_target
+# feature only swaps in freshly-built debug wasm when debug_assertions is on —
+# for release we must rebuild the committed asset blobs.
+build-plugins-release:
+    cargo build --release --target wasm32-wasip1 \
+        --package compact-bar \
+        --package status-bar \
+        --package tab-bar \
+        --package strider \
+        --package session-manager \
+        --package configuration \
+        --package plugin-manager \
+        --package about \
+        --package share \
+        --package multiple-select \
+        --package layout-manager \
+        --package link
+    for plugin in compact-bar status-bar tab-bar strider session-manager configuration plugin-manager about share multiple-select layout-manager link; do \
+        cp "target/wasm32-wasip1/release/$plugin.wasm" "zellij-utils/assets/plugins/$plugin.wasm"; \
+    done
+
 # 🚀 Build and run (release)
-run: build-plugins
+run: build-plugins-release
     cargo run --release
 
 # 🐛 Run in debug mode
